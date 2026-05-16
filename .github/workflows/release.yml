@@ -1,8 +1,13 @@
-name: Build and Push to GHCR
+name: Build and Push Docker Image to GHCR
 
 on:
+#  push:
+#    branches: [ "main" ] # Срабатывает при пуше в вашу главную ветку
+on:
+  workflow_dispatch: # Включает магическую кнопку на GitHub для ручного запуска
   push:
-    branches: [ "main" ] # Срабатывает при пуше в вашу главную ветку
+    tags:
+      - 'v*.*.*'       # Запускает сборку автоматически при пуше тегов (например, v1.0.0)
 
 env:
   REGISTRY: ghcr.io
