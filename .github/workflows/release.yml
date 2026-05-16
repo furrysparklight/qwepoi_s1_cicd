@@ -1,6 +1,6 @@
 name: Build and Push Docker Image to GHCR
 
-on:
+#on:
 #  push:
 #    branches: [ "main" ] # Срабатывает при пуше в вашу главную ветку
 on:
