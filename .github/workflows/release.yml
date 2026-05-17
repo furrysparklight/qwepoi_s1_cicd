@@ -37,4 +37,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api:latest
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api:${{ github.ref_name }}
