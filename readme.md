@@ -17,15 +17,7 @@
 ### action logic issues:
 - in 'push:' section conditions are working as OR:
 thus it fires ON ANY OF Tag or Branch matching case
-  push:
-    branches:
-      - 'main'      # Сборка при пуше в main
-      - 'dev'       # Сборка при пуше в dev
-    tags:
-      - 'v*.*'       # Включает v2.7, v2.7-beta
-      - '!v*.*.*'    # ИСКЛЮЧАЕТ v2.7.1, v2.7-beta.14 (если там 3 сегмента через точку)
 
-      
 - use IF condition in build section:
 on:
   workflow_dispatch: # Магическая кнопка ручного запуска
