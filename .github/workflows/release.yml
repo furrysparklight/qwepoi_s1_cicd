@@ -8,6 +8,7 @@ on:
       - '!v*.*.*'
 
 env:
+  TARGET_BRANCH: main
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   IMAGE_PATH: api
@@ -31,9 +32,9 @@ jobs:
             exit 0
           fi
 
-          git fetch origin main
+          git fetch origin $TARGET_BRANCH
 
-          if git branch -r --contains "$GITHUB_SHA" | grep -qE 'origin/main$'; then
+          if git branch -r --contains "$GITHUB_SHA" | grep -qE "origin/$TARGET_BRANCH$"; then
             echo "should_build=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_build=false" >> "$GITHUB_OUTPUT"
