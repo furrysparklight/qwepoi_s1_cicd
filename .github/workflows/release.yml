@@ -1,36 +1,62 @@
 name: Build and Push Docker Image to GHCR
-## old working - add: to tag short sha hash to build | 4450c59da246a6d429c2bdfce42b0d0bdc17f375
-#on:
-#  push:
-#    branches: [ "main" ] # Срабатывает при пуше в вашу главную ветку
+# with branch check - here is 'main'
 on:
-  workflow_dispatch: # Включает магическую кнопку на GitHub для ручного запуска
+  workflow_dispatch:
   push:
     tags:
-      - 'v*.*.*'       # Запускает сборку автоматически при пуше тегов (например, v1.0.0)
+      - 'v*.*'
+      - '!v*.*.*'
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }} # Автоматически подставит имя вашего репо
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_PATH: api
 
 jobs:
-  build-and-push:
+  check:
     runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check release source
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git fetch origin main
+
+          if git branch -r --contains "$GITHUB_SHA" | grep -qE 'origin/main$'; then
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-and-push:
+    needs: check
+    if: needs.check.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+
     permissions:
-      contents: write
+      contents: read
       packages: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Log in to the Container registry
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }} # Токен создается GitHub автоматически
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -38,6 +64,50 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api:${{ github.ref_name }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api:${{ github.ref_name }}-sha-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ env.IMAGE_PATH }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ env.IMAGE_PATH }}:${{ github.ref_name }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ env.IMAGE_PATH }}:${{ github.ref_name }}-sha-${{ github.sha }}
+
+# name: Build and Push Docker Image to GHCR
+# ## old working - add: to tag short sha hash to build | 4450c59da246a6d429c2bdfce42b0d0bdc17f375
+# #on:
+# #  push:
+# #    branches: [ "main" ] # Срабатывает при пуше в вашу главную ветку
+# on:
+#   workflow_dispatch: # Включает магическую кнопку на GitHub для ручного запуска
+#   push:
+#     tags:
+#       - 'v*.*.*'       # Запускает сборку автоматически при пуше тегов (например, v1.0.0)
+
+# env:
+#   REGISTRY: ghcr.io
+#   IMAGE_NAME: ${{ github.repository }} # Автоматически подставит имя вашего репо
+#   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+# jobs:
+#   build-and-push:
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: write
+#       packages: write
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       - name: Log in to the Container registry
+#         uses: docker/login-action@v3
+#         with:
+#           registry: ${{ env.REGISTRY }}
+#           username: ${{ github.actor }}
+#           password: ${{ secrets.GITHUB_TOKEN }} # Токен создается GitHub автоматически
+
+#       - name: Build and push Docker image
+#         uses: docker/build-push-action@v5
+#         with:
+#           context: .
+#           push: true
+#           tags: |
+#             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api:latest
+#             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api:${{ github.ref_name }}
+#             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api:${{ github.ref_name }}-sha-${{ github.sha }}
