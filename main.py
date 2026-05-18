@@ -3,7 +3,7 @@ from fastapi.openapi.docs import get_swagger_ui_html
 from pydantic import BaseModel
 
 # Отключаем дефолтный Swagger при инициализации (docs_url=None)
-app = FastAPI(title="CI/CD docker Math & String API", docs_url=None, redoc_url=None)
+app = FastAPI(title="CI/CD Github Docker Math & String API", docs_url=None, redoc_url=None)
 
 class MathRequest(BaseModel):
     number: float
