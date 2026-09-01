@@ -69,6 +69,10 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ env.IMAGE_PATH }}:${{ github.ref_name }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ env.IMAGE_PATH }}:${{ github.ref_name }}-sha-${{ github.sha }}
 
+      - name: Trigger Dokploy deployment
+        run: |
+          curl -fsS -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}"
+
 # name: Build and Push Docker Image to GHCR
 # ## old working - add: to tag short sha hash to build | 4450c59da246a6d429c2bdfce42b0d0bdc17f375
 # #on:
